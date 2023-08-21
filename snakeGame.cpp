@@ -12,8 +12,38 @@ void reset () {
 void clearScreen() {
 	system("cls");
 }
+void enter(){
+	red();
+	printf("Press ENTER to continue...");
+	while(true){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 13) break;
+	}
+	reset();
+}
 
-void menu(){
+struct player{
+	char name[11];
+	char password[11];
+	int highScore;
+	int height;
+	player *left;
+	player *right;
+} *root = NULL;
+
+player* newPlayer(name, password, highscore){
+	player *temp = (player *)malloc(sizeof(player));
+	strcpy(temp->name, name);
+	strcpy(temp->name, password);
+	temp->highScore = highscore;
+	
+	temp->height = 1;
+	temp->left = temp->right = NULL;
+	return temp;
+}
+
+void mainMenu(){
 	int choice = 1;
 	
 	while(true){
@@ -78,13 +108,34 @@ void menu(){
 		else if(inp == 80 && choice + 1 <= 5){
 			choice += 1;
 		}
+		else if(inp == 13){
+			if(choice == 1){
+				
+			}
+			else if(choice == 2){
+				
+			}
+			else if(choice == 3){
+				
+			}
+			else if(choice == 4){
+				
+			}
+			else if(choice == 5){
+				break;
+			}
+		}
 		clearScreen();
 	}
 }
 
 int main(){
 	
-	menu();
+	mainMenu();
+	clearScreen();
+	red();
+	printf("Thanks For Playing");
+	reset();
 	
 	return 0;
 }
