@@ -3,24 +3,60 @@
 #include <stdlib.h>
 #include <conio.h>
 
+char logo[5][100] = {
+	"                       __              ",
+	"  _____  ____  _____  |  | __  ____    ",
+	" |  ___||    ||__   | |  |/  || __ |   ",
+	" |___ | |  | | _/ _ | |  |  / | ___/_  ",
+	" |____/ |__/_/|_____| |__|___||______| "
+};
+char screen[32][120] = {};
+int mark;
 void red () {
   printf("\033[1;31m");
 }
 void reset () {
   printf("\033[0m");
 }
-void clearScreen() {
-	system("cls");
+void printAt(int x, int y, char c){
+   printf("\033[%d;%dH%c", x, y, c);
+}
+void updateScreen(){
+	for(int i = 0; i < 32; i++){
+		if(i <= 5) red();
+		if(i == mark) red();
+		if(i == 16) red();
+		for(int j = 0; j < 120; j++){
+			printAt(i, j, screen[i][j]);
+		}
+		reset();
+	}
+}
+void clear(){
+	for(int i = 0; i < 32; i++){
+		for(int j = 0; j < 120; j++){
+			screen[i][j] = ' ';
+		}
+	}
 }
 void enter(){
+	printf("Press ");
 	red();
-	printf("Press ENTER to continue...");
+	printf("ENTER ");
+	reset();
+	printf("to continue...\n");
 	while(true){
 		int inp = _getch();
 		if(inp == 0 || inp == 224) inp = _getch();
 		if(inp == 13) break;
 	}
-	reset();
+}
+void displayLogo(){
+	red();
+	for(int i = 0; i < 5; i++){
+		printf("%s\n", logo[i]);
+	}
+	reset();	
 }
 
 struct player{
@@ -31,8 +67,7 @@ struct player{
 	player *left;
 	player *right;
 } *root = NULL;
-
-player* newPlayer(name, password, highscore){
+player* newPlayer(char name[], char password[], int highscore){
 	player *temp = (player *)malloc(sizeof(player));
 	strcpy(temp->name, name);
 	strcpy(temp->name, password);
@@ -43,99 +78,154 @@ player* newPlayer(name, password, highscore){
 	return temp;
 }
 
+void login(){
+	
+}
+void regis(){
+	printAt(0, 0, ' ');
+	system("cls");
+	
+}
+void highScore(){
+	
+}
+void howToPlay(){
+	printAt(0, 0, ' ');
+	system("cls");
+	
+	displayLogo();
+	
+	red();
+	printf("\n\nWelcome to the Snake Game!\n\n");
+	reset();
+	
+    printf("Instructions:\n");
+    printf("1. Use the arrow keys to control the snake.\n");
+    printf("2. Eat the food (represented by 'F') to grow the snake.\n");
+    printf("3. Avoid hitting the walls or the snake's own body.\n");
+    printf("4. The game ends when the snake collides with a wall or itself.\n");
+    printf("5. Your score increases for each food item eaten.\n");
+    printf("6. Have fun and try to achieve the highest score!\n\n\n");
+    
+    enter();
+}
+
 void mainMenu(){
 	int choice = 1;
-	
 	while(true){
-		char logo[7][256] = {
-			"     _______..__   __.      ___       __  ___  _______   _______      ___      .___  ___.  _______ ",
-			"    /       ||  \\ |  |     /   \\     |  |/  / |   ____| /  _____|    /   \\     |   \\/   | |   ____|",
-			"   |   (----`|   \\|  |    /  ^  \\    |  '  /  |  |__   |  |  __     /  ^  \\    |  \\  /  | |  |__   ",
-			"    \\   \\    |  . `  |   /  /_\\  \\   |    <   |   __|  |  | |_ |   /  /_\\  \\   |  |\\/|  | |   __|  ",
-			".----)   |   |  |\\   |  /  _____  \\  |  .  \\  |  |____ |  |__| |  /  _____  \\  |  |  |  | |  |____ ",
-			"|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______| \\______| /__/     \\__\\ |__|  |__| |_______|"   
-		};
+		clear();
 		
-		red();
-		for(int i = 0; i < 7; i++){
-			printf("%s\n", logo[i]);
+		for(int i = 0; i < strlen(logo[0]); i++){
+			screen[1][i+1] = logo[0][i];
 		}
-		reset();
-		printf("\n\n");
+		for(int i = 0; i < strlen(logo[1]); i++){
+			screen[2][i+1] = logo[1][i];
+		}
+		for(int i = 0; i < strlen(logo[2]); i++){
+			screen[3][i+1] = logo[2][i];
+		}
+		for(int i = 0; i < strlen(logo[3]); i++){
+			screen[4][i+1] = logo[3][i];
+		}
+		for(int i = 0; i < strlen(logo[4]); i++){
+			screen[5][i+1] = logo[4][i];
+		}
 		
+		mark = choice+7;
 		if(choice == 1){
-			red();
-			printf("-> Login\n");
-			reset();
+			char login[20] = "-> Login";
+			for(int i = 0; i < strlen(login); i++){
+				screen[8][i+1] = login[i];
+			}	
 		}
-		else printf("- Login\n");
+		else{
+			char login[20] = "- Login";
+			for(int i = 0; i < strlen(login); i++){
+				screen[8][i+1] = login[i];
+			}
+		}
 		
 		if(choice == 2){
-			red();
-			printf("-> Register\n");
-			reset();
+			char regis[20] = "-> Register";
+			for(int i = 0; i < strlen(regis); i++){
+				screen[9][i+1] = regis[i];
+			}
 		}
-		else printf("- Register\n");
+		else{
+			char regis[20] = "- Register";
+			for(int i = 0; i < strlen(regis); i++){
+				screen[9][i+1] = regis[i];
+			}
+		}
 		
 		if(choice == 3){
-			red();
-			printf("-> How to Play\n");
-			reset();
+			char highScore[20] = "-> High Score";
+			for(int i = 0; i < strlen(highScore); i++){
+				screen[10][i+1] = highScore[i];
+			}
 		}
-		else printf("- How to Play\n");
+		else{
+			char highScore[20] = "- High Score";
+			for(int i = 0; i < strlen(highScore); i++){
+				screen[10][i+1] = highScore[i];
+			}	
+		}
 		
 		if(choice == 4){
-			red();
-			printf("-> HighScore\n");
-			reset();
+			char how[20] = "-> How to Play";
+			for(int i = 0; i < strlen(how); i++){
+				screen[11][i+1] = how[i];
+			}	
 		}
-		else printf("- HighScore\n");
+		else{
+			char how[20] = "- How to Play";
+			for(int i = 0; i < strlen(how); i++){
+				screen[11][i+1] = how[i];
+			}
+		}
 		
 		if(choice == 5){
-			red();
-			printf("-> Exit\n");
-			reset();
+			char exit[20] = "-> Exit";
+			for(int i = 0; i < strlen(exit); i++){
+				screen[12][i+1] = exit[i];
+			}
 		}
-		else printf("- Exit\n");
+		else{
+			char exit[20] = "- Exit";
+			for(int i = 0; i < strlen(exit); i++){
+				screen[12][i+1] = exit[i];
+			}
+		}
 		
-		int inp;
-		inp = _getch();
+		char command[100] = "Press ARROW UP or DOWN to navigate the MENU!!";
+		for(int i = 0; i < strlen(command); i++){
+			screen[16][i+1] = command[i];
+		}
+		
+		updateScreen();
+		
+		int inp = _getch();
 		if(inp == 0 || inp == 224) inp = _getch();
-		
-		if(inp == 72 && choice - 1 >= 1){
-			choice -= 1;
+		if(inp == 72 && choice-1 >= 1) choice--;
+		else if(inp == 80 && choice+1 <= 5) choice++;
+		if(inp == 13){
+			if(choice == 1) login();
+			else if(choice == 2) regis();
+			else if(choice == 3) highScore();
+			else if(choice == 4) howToPlay();
+			else if(choice == 5) break;
 		}
-		else if(inp == 80 && choice + 1 <= 5){
-			choice += 1;
-		}
-		else if(inp == 13){
-			if(choice == 1){
-				
-			}
-			else if(choice == 2){
-				
-			}
-			else if(choice == 3){
-				
-			}
-			else if(choice == 4){
-				
-			}
-			else if(choice == 5){
-				break;
-			}
-		}
-		clearScreen();
 	}
+	
 }
 
 int main(){
-	
+	printf("\e[?25l");
 	mainMenu();
-	clearScreen();
-	red();
-	printf("Thanks For Playing");
-	reset();
+	printf("\e[?25h");
+	printAt(0, 0, ' ');
+	system("cls");
+	printf("THANKS FOR PLAYING :) <3");
 	
 	return 0;
 }
