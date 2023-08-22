@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <pthread.h>
+
+bool gameIsRunning = false;
 
 // Terminal Manipulation
 char logo[5][100] = {
@@ -194,8 +197,10 @@ player* search(player* curr, char username[]){
 struct snake{
 	int x, y;
 	snake *next, *prev;
-} *head = NULL, *tail = NUll;
-
+} *head = NULL, *tail = NULL;
+void push(){
+	snake *temp = (snake*)malloc(sizeof(snake));
+}
 void map(){
 	for(int i = 8; i < 27; i++){
 		for(int j = 42; j < 81; j++){
@@ -206,15 +211,42 @@ void map(){
 	}	
 }
 
-void game(){
+void* userInput(void *arg){
+	while(gameIsRunning){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 72){
+			
+		}
+		else if(inp == 75){
+			
+		}
+		else if(inp == 77){
+			
+		}
+		else if(inp == 80){
+			
+		}	
+	}
+	return NULL;
+}
+void* gameEngine(void *arg){
 	clear();
 	logoForGame();
 	
-	while(true){
+	while(gameIsRunning){
+		clear();
 		map();
 		updateGame();
-		_getch();
 	}
+	return NULL;
+}
+
+void game(){
+	gameIsRunning = true;
+	pthread_t userInputThread, gameEngineThread;
+	pthread_create(&userInputThread, NULL, userInput, NULL);
+	pthread_create(&gameEngineThread, NULL, gameEngine, NULL);
 }
 
 // Features
@@ -368,7 +400,17 @@ bool checkPassword(char string[]){
 }
 bool checkPasswordLogin(char name[], char pass[]){
 	player* temp = search(root, name);
-	return temp != NULL && strcmp(temp->password, pass) == 0 ? true : false;
+	if(temp != NULL && strcmp(temp->password, pass) == 0) return true;
+	else{
+		red();
+		clearAlertTab();
+		char alert[50] = "WRONG PASSWORD!";
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		reset();
+		return false;
+	}
 }
 
 void login(){
