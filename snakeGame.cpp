@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <pthread.h>
+#include <unistd.h>
 
 bool gameIsRunning = false;
 
@@ -199,7 +200,6 @@ struct snake{
 	int direction;
 	snake *next, *prev;
 } *head = NULL, *tail = NULL;
-
 void newSnake(){
 	snake *temp = (snake*)malloc(sizeof(snake));
 	temp->direction = 1;
@@ -208,6 +208,27 @@ void newSnake(){
 	temp->next = temp->prev = NULL;
 	
 	head = tail = temp;
+}
+bool checkDeath(){
+	if(head->x <= 8 || head->x >= 26 || head->y <= 42 || head->y >= 79){
+		return true;
+	}
+	return false;
+}
+
+void move(){
+	if(head->direction == 1){
+		head->x--;
+	}
+	else if(head->direction == 2){
+		head->y--;
+	}
+	else if(head->direction == 3){
+		head->y++;
+	}
+	else if(head->direction == 4){
+		head->x++;
+	}
 }
 
 void map(){
@@ -227,27 +248,37 @@ void* userInput(void *arg){
 		int inp = _getch();
 		if(inp == 0 || inp == 224) inp = _getch();
 		if(inp == 72){
-			
+			head->direction = 1;
 		}
 		else if(inp == 75){
-			
+			head->direction = 2;
 		}
 		else if(inp == 77){
-			
+			head->direction = 3;
 		}
 		else if(inp == 80){
-			
+			head->direction = 4;
 		}	
 	}
 	return NULL;
 }
 void* gameEngine(void *arg){
+	clear();
+	logoForGame();
+	map();
+	updateGame();
+	
 	while(gameIsRunning){
+		gameIsRunning = checkDeath() ? false : true;
+		sleep(0.5);
 		clear();
 		logoForGame();
 		map();
+		move();
 		updateGame();
 	}
+	clear();
+	updateScreen();
 	return NULL;
 }
 
@@ -257,6 +288,13 @@ void game(){
 	pthread_t userInputThread, gameEngineThread;
 	pthread_create(&userInputThread, NULL, userInput, NULL);
 	pthread_create(&gameEngineThread, NULL, gameEngine, NULL);
+	
+	while(gameIsRunning){
+		
+	}
+	sleep(1);
+	printAt(0, 0, ' ');
+	enter();
 }
 
 // Features
