@@ -210,7 +210,7 @@ void newSnake(){
 	head = tail = temp;
 }
 bool checkDeath(){
-	if(head->x <= 8 || head->x >= 26 || head->y <= 42 || head->y >= 79){
+	if(head->x <= 8 || head->x >= 25 || head->y <= 42 || head->y >= 79){
 		return true;
 	}
 	return false;
