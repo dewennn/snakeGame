@@ -76,7 +76,7 @@ struct player{
 player* newPlayer(char name[], char password[], int highscore){
 	player *temp = (player *)malloc(sizeof(player));
 	strcpy(temp->name, name);
-	strcpy(temp->name, password);
+	strcpy(temp->password, password);
 	temp->highScore = highscore;
 	
 	temp->height = 1;
@@ -181,7 +181,7 @@ void clearAlertTab(){
 	}
 	printAt(31, 0, ' ');
 }
-bool checkUsername(char string[]){
+bool checkUsername(char string[], int option){
 	red();
 	bool stringLength = strlen(string) >= 3 && strlen(string) <= 10;
 	bool emptySpace = checkForEmptySpace(string);
@@ -225,22 +225,43 @@ bool checkUsername(char string[]){
 		return false;
 	}
 	else{
-		if(search(root, string) != NULL){
-			clearAlertTab();
-			char alert[50] = "USERNAME ALREADY TAKEN!";
-			for(int i = 0; i < strlen(alert); i++){
-				printAt(31, i+1, alert[i]);
+		if(option == 1){
+			if(search(root, string) == NULL){
+				clearAlertTab();
+				char alert[50] = "USERNAME DOESN'T EXIST!";
+				for(int i = 0; i < strlen(alert); i++){
+					printAt(31, i+1, alert[i]);
+				}
+				return false;
 			}
-			return false;
+			else{
+				green();
+				clearAlertTab();
+				char alert[50] = "USERNAME HAS BEEN VERIFIED!";
+				for(int i = 0; i < strlen(alert); i++){
+					printAt(31, i+1, alert[i]);
+				}
+				return true;
+			}
 		}
-		else{
-			green();
-			clearAlertTab();
-			char alert[50] = "USERNAME HAS BEEN VERIFIED!";
-			for(int i = 0; i < strlen(alert); i++){
-				printAt(31, i+1, alert[i]);
+		else if(option == 2){
+			if(search(root, string) != NULL){
+				clearAlertTab();
+				char alert[50] = "USERNAME ALREADY TAKEN!";
+				for(int i = 0; i < strlen(alert); i++){
+					printAt(31, i+1, alert[i]);
+				}
+				return false;
 			}
-			return true;
+			else{
+				green();
+				clearAlertTab();
+				char alert[50] = "USERNAME HAS BEEN VERIFIED!";
+				for(int i = 0; i < strlen(alert); i++){
+					printAt(31, i+1, alert[i]);
+				}
+				return true;
+			}
 		}
 	}
 }
@@ -292,9 +313,70 @@ bool checkPassword(char string[]){
 		return true;
 	}
 }
+bool checkPasswordLogin(char name[], char pass[]){
+	player* temp = search(root, name);
+	return temp != NULL && strcmp(temp->password, pass) == 0 ? true : false;
+}
 
 void login(){
+	printf("\e[?25h");
+	printAt(0, 0, ' ');
+	system("cls");
 	
+	char name[100] = {};
+	char pass[100] = {};
+	
+	displayLogo();
+	printf("\n\nLogin Page.\n");
+	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
+	
+	while(true){
+		green();
+		scanf("%[^\n]", &name);
+		getchar();
+		
+		if(checkUsername(name, 1)) break;
+		for(int i = 0; i < strlen(name); i++){
+			printAt(9, strlen("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ") + 1 + i, ' ');	
+		}
+		printAt(9, strlen("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: "), ' ');
+		green();
+	}
+	
+	reset();
+	printAt(10, 0, ' ');
+	printf("\b");
+	printf("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
+	
+	while(true){
+		green();
+		scanf("%[^\n]", &pass);
+		getchar();
+		
+		if(checkPasswordLogin(name, pass)) break;
+		for(int i = 0; i < strlen(pass); i++){
+			printAt(10, strlen("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ") + 1 + i, ' ');	
+		}
+		printAt(10, strlen("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: "), ' ');
+		green();
+	}
+	
+	printf("\e[?25l");
+	green();
+	clearAlertTab();
+	char alert1[100] = "USERNAME AND PASSWORD HAVE BEEN VERIFIED! YOU ARE LOGGED IN!";
+	for(int i = 0; i < strlen(alert1); i++){
+		printAt(29, i+1, alert1[i]);
+	}
+	char alert2[50] = "Press ENTER to start SNAKE";
+	for(int i = 0; i < strlen(alert2); i++){
+		printAt(31, i+1, alert2[i]);
+	}
+	while(true){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 13) break;
+	}
 }
 void regis(){
 	printf("\e[?25h");
@@ -313,7 +395,7 @@ void regis(){
 		scanf("%[^\n]", &name);
 		getchar();
 		
-		if(checkUsername(name)) break;
+		if(checkUsername(name, 2)) break;
 		for(int i = 0; i < strlen(name); i++){
 			printAt(9, strlen("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ") + 1 + i, ' ');	
 		}
