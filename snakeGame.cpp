@@ -8,11 +8,11 @@ bool gameIsRunning = false;
 
 // Terminal Manipulation
 char logo[5][100] = {
-	"                       __              ",
-	"  _____  ____  _____  |  | __  ____    ",
-	" |  ___||    ||__   | |  |/  || __ |   ",
-	" |___ | |  | | _/ _ | |  |  / | ___/_  ",
-	" |____/ |__/_/|_____| |__|___||______| "
+	"                       __            ",
+	"  _____  ____  _____  |  | __  ____  ",
+	" |  ___||    ||__   | |  |/  || __ | ",
+	" |___ | |  | | _/ _ | |  |  / | ___/_",
+	" |____/ |__/_/|_____| |__|___||_____|"
 };
 char screen[32][120] = {};
 int mark;
@@ -196,21 +196,32 @@ player* search(player* curr, char username[]){
 // THE GAME
 struct snake{
 	int x, y;
+	int direction;
 	snake *next, *prev;
 } *head = NULL, *tail = NULL;
-void push(){
+
+void newSnake(){
 	snake *temp = (snake*)malloc(sizeof(snake));
+	temp->direction = 1;
+	temp->x = 16;
+	temp->y = 60;
+	temp->next = temp->prev = NULL;
+	
+	head = tail = temp;
 }
+
 void map(){
-	for(int i = 8; i < 27; i++){
-		for(int j = 42; j < 81; j++){
-			if(i == 8 || j == 42 || i == 26 || j == 80){
+	for(int i = 8; i < 26; i++){
+		for(int j = 42; j < 80; j++){
+			if(head->x == i && head->y == j){
+				screen[i][j] = 'O';	
+			}
+			else if(i == 8 || j == 42 || i == 25 || j == 79){
 				screen[i][j] = '#';
 			}
 		}
 	}	
 }
-
 void* userInput(void *arg){
 	while(gameIsRunning){
 		int inp = _getch();
@@ -231,11 +242,9 @@ void* userInput(void *arg){
 	return NULL;
 }
 void* gameEngine(void *arg){
-	clear();
-	logoForGame();
-	
 	while(gameIsRunning){
 		clear();
+		logoForGame();
 		map();
 		updateGame();
 	}
@@ -244,6 +253,7 @@ void* gameEngine(void *arg){
 
 void game(){
 	gameIsRunning = true;
+	newSnake();
 	pthread_t userInputThread, gameEngineThread;
 	pthread_create(&userInputThread, NULL, userInput, NULL);
 	pthread_create(&gameEngineThread, NULL, gameEngine, NULL);
