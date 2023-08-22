@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <conio.h>
 
+// Terminal Manipulation
 char logo[5][100] = {
 	"                       __              ",
 	"  _____  ____  _____  |  | __  ____    ",
@@ -13,7 +14,10 @@ char logo[5][100] = {
 char screen[32][120] = {};
 int mark;
 void red () {
-  printf("\033[1;31m");
+  printf("\e[1;31m");
+}
+void green () {
+  printf("\e[1;32m");
 }
 void reset () {
   printf("\033[0m");
@@ -24,7 +28,7 @@ void printAt(int x, int y, char c){
 void updateScreen(){
 	for(int i = 0; i < 32; i++){
 		if(i <= 5) red();
-		if(i == mark) red();
+		if(i == mark) green();
 		if(i == 16) red();
 		for(int j = 0; j < 120; j++){
 			printAt(i, j, screen[i][j]);
@@ -41,7 +45,7 @@ void clear(){
 }
 void enter(){
 	printf("Press ");
-	red();
+	green();
 	printf("ENTER ");
 	reset();
 	printf("to continue...\n");
@@ -59,10 +63,12 @@ void displayLogo(){
 	reset();	
 }
 
+// Data Management
 struct player{
 	char name[11];
 	char password[11];
 	int highScore;
+	
 	int height;
 	player *left;
 	player *right;
@@ -77,14 +83,279 @@ player* newPlayer(char name[], char password[], int highscore){
 	temp->left = temp->right = NULL;
 	return temp;
 }
+int getMax(int a, int b){
+	return a > b ? a : b;
+}
+int getHeight(player* curr){
+	if(!curr) return 0;
+	else return 1 + getMax(getHeight(curr->left), getHeight(curr->right));
+}
+int getBalance(player* curr){
+	if(!curr) return 0;
+	return getHeight(curr->left) - getHeight(curr->right);
+}
+player* leftRotate(player* curr){
+	player* rightChild = curr->left;
+	player* rightChildLeft = rightChild->left;
+	
+	rightChild->left = curr;
+	curr->right = rightChildLeft;
+	
+	rightChild->height = getHeight(rightChild);
+	curr->height = getHeight(curr);
+	
+	return rightChild;
+}
+player* rightRotate(player* curr){
+	player* leftChild = curr->left;
+	player* leftChildsright = leftChild->right;
+	
+	leftChild->right = curr;
+	curr->left = leftChildsright;
+	
+	leftChild->height =getHeight(leftChild);
+	curr->height = getHeight(curr);
+	
+	return leftChild;
+}
+player* rebalancing(player* root){
+	if(!root) return NULL;
+	
+	root->height = getHeight(root);
+	int bal = getBalance(root);
+	if(bal > 1 && getBalance(root->left)>= 0){
+		return rightRotate(root);
+	}
+	else if(bal > 1 && getBalance(root->left)< 0){
+		root->left = leftRotate(root->left);
+		return rightRotate(root);
+	}
+	else if(bal < -1 && getBalance(root->right) <= 0){
+		return leftRotate(root);
+	}
+	else if(bal < -1 && getBalance(root->right)> 0){
+		root->right = rightRotate(root->right);
+		return leftRotate(root);
+	}
+	return root;
+}
+player* insert(player* root, player* newPlayer){
+	if(!root)return newPlayer;
+	
+	else if(strcmp(root->name, newPlayer->name) > 0){
+		root->left = insert(root->left, newPlayer);
+	}
+	else if(strcmp(root->name, newPlayer->name) < 0){
+		root->right = insert(root->right, newPlayer);
+	}
+	
+	return rebalancing(root);
+}
+player* search(player* curr, char username[]){
+	if(!curr) return NULL;
+	else if(strcmp(curr->name, username) == 0) return curr;
+	else{
+		if(strcmp(curr->name, username) > 0){
+			return search(curr->left, username);
+		}
+		else if(strcmp(curr->name, username) < 0){
+			return search(curr->right, username);
+		}	
+	}
+}
+
+// Features
+bool checkForEmptySpace(char string[]){
+	bool result = false;
+	for(int i = 0; i < strlen(string); i++){
+		if(string[i] == 32){
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+void clearAlertTab(){
+	for(int i = 0; i < 200; i++){
+		printAt(31, i+1, ' ');
+	}
+	printAt(31, 0, ' ');
+}
+bool checkUsername(char string[]){
+	red();
+	bool stringLength = strlen(string) >= 3 && strlen(string) <= 10;
+	bool emptySpace = checkForEmptySpace(string);
+	if(!stringLength && emptySpace || strlen(string) == 0){
+		clearAlertTab();
+		char alert[50] = {};
+		
+		if(strlen(string) < 3){
+			strcpy(alert, "USERNAME IS TOO SHORT AND CONTAIN EMPTY SPACES!");
+		}
+		else{
+			strcpy(alert, "USERNAME IS TOO LONG AND CONTAIN EMPTY SPACES!");
+		}
+		
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else if(!stringLength && !emptySpace){
+		clearAlertTab();
+		char alert[50] = {};
+		if(strlen(string) < 3){
+			strcpy(alert, "USERNAME IS TOO SHORT!");
+		}
+		else{
+			strcpy(alert, "USERNAME IS TOO LONG!");
+		}
+		
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else if(stringLength && emptySpace){
+		clearAlertTab();
+		char alert[50] = "USERNAME CONTAIN EMPTY SPACES!";
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else{
+		if(search(root, string) != NULL){
+			clearAlertTab();
+			char alert[50] = "USERNAME ALREADY TAKEN!";
+			for(int i = 0; i < strlen(alert); i++){
+				printAt(31, i+1, alert[i]);
+			}
+			return false;
+		}
+		else{
+			green();
+			clearAlertTab();
+			char alert[50] = "USERNAME HAS BEEN VERIFIED!";
+			for(int i = 0; i < strlen(alert); i++){
+				printAt(31, i+1, alert[i]);
+			}
+			return true;
+		}
+	}
+}
+bool checkPassword(char string[]){
+	red();
+	bool stringLength = strlen(string) >= 3 && strlen(string) <= 10;
+	bool emptySpace = checkForEmptySpace(string);
+	if(!stringLength && emptySpace || strlen(string) == 0){
+		clearAlertTab();
+		
+		char alert[50] = {};
+		if(strlen(string) < 3){
+			strcpy(alert, "PASSWORD IS TOO SHORT AND CONTAIN EMPTY SPACES!");
+		}
+		else{
+			strcpy(alert, "PASSWORD IS TOO LONG AND CONTAIN EMPTY SPACES!");
+		}
+		
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else if(!stringLength && !emptySpace){
+		clearAlertTab();
+		
+		char alert[50] = {};
+		if(strlen(string) < 3){
+			strcpy(alert, "PASSWORD IS TOO SHORT!");
+		}
+		else{
+			strcpy(alert, "PASSWORD IS TOO LONG!");
+		}
+		
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else if(stringLength && emptySpace){
+		clearAlertTab();
+		char alert[50] = "PASSWORD CONTAIN EMPTY SPACES!";
+		for(int i = 0; i < strlen(alert); i++){
+			printAt(31, i+1, alert[i]);
+		}
+		return false;
+	}
+	else{
+		return true;
+	}
+}
 
 void login(){
 	
 }
 void regis(){
+	printf("\e[?25h");
 	printAt(0, 0, ' ');
 	system("cls");
 	
+	char name[100] = {};
+	char pass[100] = {};
+	
+	displayLogo();
+	printf("\n\nRegister Page.\n");
+	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
+	
+	while(true){
+		green();
+		scanf("%[^\n]", &name);
+		getchar();
+		
+		if(checkUsername(name)) break;
+		for(int i = 0; i < strlen(name); i++){
+			printAt(9, strlen("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ") + 1 + i, ' ');	
+		}
+		printAt(9, strlen("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: "), ' ');
+		green();
+	}
+	
+	reset();
+	printAt(10, 0, ' ');
+	printf("\b");
+	printf("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
+	
+	while(true){
+		green();
+		scanf("%[^\n]", &pass);
+		getchar();
+		
+		if(checkPassword(pass)) break;
+		for(int i = 0; i < strlen(pass); i++){
+			printAt(10, strlen("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ") + 1 + i, ' ');	
+		}
+		printAt(10, strlen("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: "), ' ');
+		green();
+	}
+	
+	printf("\e[?25l");
+	root = insert(root, newPlayer(name, pass, 0));
+	green();
+	clearAlertTab();
+	char alert1[100] = "USERNAME AND PASSWORD HAVE BEEN VERIFIED! YOUR ACCOUNT HAS BEEN CREATED!";
+	for(int i = 0; i < strlen(alert1); i++){
+		printAt(29, i+1, alert1[i]);
+	}
+	char alert2[50] = "Press ENTER to go back to MAIN MENU";
+	for(int i = 0; i < strlen(alert2); i++){
+		printAt(31, i+1, alert2[i]);
+	}
+	while(true){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 13) break;
+	}
 }
 void highScore(){
 	
@@ -110,6 +381,7 @@ void howToPlay(){
     enter();
 }
 
+// Main Menu
 void mainMenu(){
 	int choice = 1;
 	while(true){
