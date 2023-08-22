@@ -36,6 +36,15 @@ void updateScreen(){
 		reset();
 	}
 }
+void updateGame(){
+	for(int i = 0; i < 32; i++){
+		if(i <= 5) red();
+		for(int j = 0; j < 120; j++){
+			printAt(i, j, screen[i][j]);
+		}
+		reset();
+	}
+}
 void clear(){
 	for(int i = 0; i < 32; i++){
 		for(int j = 0; j < 120; j++){
@@ -61,6 +70,23 @@ void displayLogo(){
 		printf("%s\n", logo[i]);
 	}
 	reset();	
+}
+void logoForGame(){
+	for(int i = 0; i < strlen(logo[0]); i++){
+		screen[1][i+42] = logo[0][i];
+	}
+	for(int i = 0; i < strlen(logo[1]); i++){
+		screen[2][i+42] = logo[1][i];
+	}
+	for(int i = 0; i < strlen(logo[2]); i++){
+		screen[3][i+42] = logo[2][i];
+	}
+	for(int i = 0; i < strlen(logo[3]); i++){
+		screen[4][i+42] = logo[3][i];
+	}
+	for(int i = 0; i < strlen(logo[4]); i++){
+		screen[5][i+42] = logo[4][i];
+	}
 }
 
 // Data Management
@@ -161,6 +187,33 @@ player* search(player* curr, char username[]){
 		else if(strcmp(curr->name, username) < 0){
 			return search(curr->right, username);
 		}	
+	}
+}
+
+// THE GAME
+struct snake{
+	int x, y;
+	snake *next, *prev;
+} *head = NULL, *tail = NUll;
+
+void map(){
+	for(int i = 8; i < 27; i++){
+		for(int j = 42; j < 81; j++){
+			if(i == 8 || j == 42 || i == 26 || j == 80){
+				screen[i][j] = '#';
+			}
+		}
+	}	
+}
+
+void game(){
+	clear();
+	logoForGame();
+	
+	while(true){
+		map();
+		updateGame();
+		_getch();
 	}
 }
 
@@ -377,6 +430,7 @@ void login(){
 		if(inp == 0 || inp == 224) inp = _getch();
 		if(inp == 13) break;
 	}
+	game();
 }
 void regis(){
 	printf("\e[?25h");
