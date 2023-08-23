@@ -10,13 +10,16 @@ time_t start;
 time_t now;
 
 // Colors
-void red () {
+void red(){
   printf("\e[1;31m");
 }
-void green () {
+void yellow(){
+	printf("\e[0;33m");
+}
+void green(){
   printf("\e[1;32m");
 }
-void reset () {
+void reset(){
   printf("\033[0m");
 }
 
@@ -44,13 +47,12 @@ void updateScreen(){
 		reset();
 	}
 }
-void updateGame(){
+void fixScreen(){
+	reset();
 	for(int i = 0; i < 32; i++){
-		if(i <= 5) red();
 		for(int j = 0; j < 120; j++){
 			printAt(i, j, screen[i][j]);
 		}
-		reset();
 	}
 }
 void clearScreen(){
@@ -427,6 +429,23 @@ bool searchPoints(int x, int y){
 }
 
 //// Engine
+void updateGame(){
+	for(int i = 8; i < 26; i++){
+		for(int j = 0; j < 120; j++){
+			reset();
+			if(searchPoints(i, j)){
+				yellow();
+			}
+			if((head->x == i && head->y == j) || snakeBody(i, j)){
+				green();
+			}
+			else if(i == 8 || j == 42 || i == 25 || j == 79){
+				red();
+			}
+			printAt(i, j, screen[i][j]);
+		}
+	}	
+}
 void map(){
 	for(int i = 8; i < 26; i++){
 		for(int j = 42; j < 80; j++){
@@ -470,6 +489,7 @@ void* userInput(void *arg){
 void* gameEngine(void *arg){
 	clearScreen();
 	printAtLogo();
+	fixScreen();
 	map();
 	updateGame();
 	
@@ -492,7 +512,7 @@ void* gameEngine(void *arg){
 	
 	clearPoint();
 	clearScreen();
-	updateScreen();
+	fixScreen();
 	return NULL;
 }
 
@@ -688,13 +708,25 @@ void login(){
 	char pass[100] = {};
 	
 	printLogo();
-	printf("\n\nLogin Page.\n");
+	printf("\n\nLogin Page | ");
+	red();
+	printf("[INPUT");
+	green();
+	printf(" ESC ");
+	red();
+	printf("TO QUIT]\n");
+	reset();
+	
 	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
 	
 	while(true){
 		green();
 		scanf("%[^\n]", &name);
 		getchar();
+		if(strcmp(name, "ESC") == 0){
+			printf("\e[?25l");
+			return;
+		}
 		
 		if(checkUsername(name, 1)) break;
 		for(int i = 0; i < strlen(name); i++){
@@ -713,6 +745,10 @@ void login(){
 		green();
 		scanf("%[^\n]", &pass);
 		getchar();
+		if(strcmp(pass, "ESC") == 0){
+			printf("\e[?25l");
+			return;
+		}
 		
 		if(checkPasswordLogin(name, pass)) break;
 		for(int i = 0; i < strlen(pass); i++){
@@ -749,13 +785,25 @@ void regis(){
 	char pass[100] = {};
 	
 	printLogo();
-	printf("\n\nRegister Page.\n");
+	printf("\n\nRegister Page | ");
+	red();
+	printf("[INPUT");
+	green();
+	printf(" ESC ");
+	red();
+	printf("TO QUIT]\n");
+	reset();
+	
 	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
 	
 	while(true){
 		green();
 		scanf("%[^\n]", &name);
 		getchar();
+		if(strcmp(name, "ESC") == 0){
+			printf("\e[?25l");
+			return;
+		}
 		
 		if(checkUsername(name, 2)) break;
 		for(int i = 0; i < strlen(name); i++){
@@ -774,6 +822,10 @@ void regis(){
 		green();
 		scanf("%[^\n]", &pass);
 		getchar();
+		if(strcmp(pass, "ESC") == 0){
+			printf("\e[?25l");
+			return;
+		}
 		
 		if(checkPassword(pass)) break;
 		for(int i = 0; i < strlen(pass); i++){
