@@ -253,8 +253,6 @@ void move(){
 		}	
 	}
 	
-	gameIsRunning = checkDeath() ? false : true;
-	
 	if(head->direction == 1){
 		head->x--;
 	}
@@ -267,6 +265,8 @@ void move(){
 	else if(head->direction == 4){
 		head->x++;
 	}
+	
+	gameIsRunning = checkDeath() ? false : true;
 }
 void snakeGrow(){
 	snake *temp = (snake*)malloc(sizeof(snake));
