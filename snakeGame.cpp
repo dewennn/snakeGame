@@ -4,6 +4,10 @@
 #include <conio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
+
+time_t start;
+time_t now;
 
 // Colors
 void red () {
@@ -198,18 +202,6 @@ player* search(player* curr, char username[]){
 // X -> Vertical, Y -> Horizontal
 bool gameIsRunning = false;
 int score = 0;
-void map(){
-	for(int i = 8; i < 26; i++){
-		for(int j = 42; j < 80; j++){
-			if(head->x == i && head->y == j){
-				screen[i][j] = 'O';	
-			}
-			else if(i == 8 || j == 42 || i == 25 || j == 79){
-				screen[i][j] = '#';
-			}
-		}
-	}	
-}
 
 //// Snake
 struct snake{
@@ -252,13 +244,13 @@ int amountOfPoints = 0;
 int possiblePoints = 0;
 struct point{
 	int x, y;
-	points *next;
+	point *next;
 }*headP = NULL, *tailP = NULL;
 void newPoint(int x, int y){
 	point* temp = (point *)malloc(sizeof(point));
 	temp->x = x;
 	temp->y = y;
-	temp->next = null;
+	temp->next = NULL;
 	
 	if(!headP){
 		headP = tailP = temp;
@@ -270,10 +262,6 @@ void newPoint(int x, int y){
 		}
 		curr->next = temp;
 	}
-}
-void generatePoints(){
-	int iterator = rand()%possiblePoints + 1;
-	
 }
 
 struct possibleCoord{
@@ -308,7 +296,6 @@ void clearCoord(){
 				possibleCoord* temp = headC;
 				headC = headC->next;	
 				temp = NULL;
-				free(temp);
 			}
 		}
 	}
@@ -322,7 +309,46 @@ void createPoints(){
 	}
 }
 
+void generatePoints(){
+	createPoints();
+	int iterator = rand()%possiblePoints + 1;
+	int ctr = 1;
+	if(headC){
+		possibleCoord* curr = headC;
+		while(curr->next && ctr <= iterator){
+			curr = curr->next;
+		}
+		newPoint(curr->x, curr->y);
+	}
+}
+bool searchPoints(int x, int y){
+	if(headP){
+		point* curr = headP;
+		while(headP){
+			if(headP->x == x && head->y == y) return true;
+			headP = headP->next;
+		}
+	}
+	return false;
+}
+
 //// Engine
+void map(){
+	for(int i = 8; i < 26; i++){
+		for(int j = 42; j < 80; j++){
+			if(searchPoints(i, j)){
+				screen[i][j] = 'F';
+			}
+			if(head->x == i && head->y == j){
+				screen[i][j] = 'O';	
+			}
+			else if(i == 8 || j == 42 || i == 25 || j == 79){
+				screen[i][j] = '#';
+			}
+		}
+	}	
+}
+
 void* userInput(void *arg){
 	while(gameIsRunning){
 		int inp = _getch();
@@ -348,7 +374,15 @@ void* gameEngine(void *arg){
 	map();
 	updateGame();
 	
+	srand(time(NULL));
+	start = time(NULL);
+	
 	while(gameIsRunning){
+		now = time(NULL);
+		if(difftime(now, start) >= 5){
+			start = time(NULL);
+			generatePoints();
+		}
 		gameIsRunning = checkDeath() ? false : true;
 		sleep(0.5);
 		clearScreen();
