@@ -207,18 +207,54 @@ int score = 0;
 struct snake{
 	int x, y;
 	int direction;
-	snake *next, *prev;
+	snake *next;
 } *head = NULL, *tail = NULL;
 void newSnake(){
 	snake *temp = (snake*)malloc(sizeof(snake));
 	temp->direction = 1;
 	temp->x = 16;
 	temp->y = 60;
-	temp->next = temp->prev = NULL;
+	temp->next = NULL;
 	
 	head = tail = temp;
 }
+bool snakeBody(int x, int y){
+	snake *curr = head->next;
+	while(curr){
+		if(curr->x == x && curr->y == y) return true;
+		curr = curr->next;
+	}
+	return false;
+}
+bool checkDeath(){
+	if(head->x <= 8 || head->x >= 25 || head->y <= 42 || head->y >= 79){
+		return true;
+	}
+	if(snakeBody(head->x, head->y)) return true;
+	return false;
+}
 void move(){
+	snake* curr = head->next;
+	if(curr){
+		int tempX = head->x;
+		int tempY = head->y;
+		int tempDir = head->direction;
+		while(curr){
+			int tempXX = curr->x;
+			int tempYY = curr->y;
+			int tempDirr = curr->direction;
+			curr->x = tempX;
+			curr->y = tempY;
+			curr->direction = tempDir;
+			tempX = tempXX;
+			tempY = tempYY;
+			tempDir = tempDir;
+			curr = curr->next;
+		}	
+	}
+	
+	gameIsRunning = checkDeath() ? false : true;
+	
 	if(head->direction == 1){
 		head->x--;
 	}
@@ -232,11 +268,29 @@ void move(){
 		head->x++;
 	}
 }
-bool checkDeath(){
-	if(head->x <= 8 || head->x >= 25 || head->y <= 42 || head->y >= 79){
-		return true;
+void snakeGrow(){
+	snake *temp = (snake*)malloc(sizeof(snake));
+	if(tail->direction == 1){
+		temp->x = tail->x + 1;
+		temp->y = tail->y;
 	}
-	return false;
+	else if(tail->direction == 2){
+		temp->x = tail->x;
+		temp->y = tail->y + 1;
+	}
+	else if(tail->direction == 3){
+		temp->x = tail->x;
+		temp->y = tail->y - 1;
+	}
+	else if(tail->direction == 4){
+		temp->x = tail->x - 1;
+		temp->y = tail->y;
+	}
+	temp->direction = tail->direction;
+	temp->next = NULL;
+	
+	tail->next = temp;
+	tail = temp;
 }
 
 //// Points
@@ -247,8 +301,8 @@ struct point{
 	int x, y;
 	point *next;
 }*headP = NULL, *tailP = NULL;
-
 void newPoint(int x, int y){
+	amountOfPoints++;
 	point* temp = (point *)malloc(sizeof(point));
 	temp->x = x;
 	temp->y = y;
@@ -266,6 +320,7 @@ void delPoint(int x, int y){
 	if(!headP->next){
 		if(headP->x == x && headP->y == y){
 			headP = tailP = NULL;
+			amountOfPoints--;
 		}
 	}
 	else{
@@ -273,6 +328,7 @@ void delPoint(int x, int y){
 			point *temp = headP;
 			headP = headP->next;
 			temp = NULL;
+			amountOfPoints--;
 		}
 		else{
 			point* curr = headP;
@@ -282,6 +338,22 @@ void delPoint(int x, int y){
 			point *temp = curr->next;
 			curr->next = temp->next;
 			temp = NULL;
+			amountOfPoints--;
+		}
+	}
+}
+void clearPoint(){
+	amountOfPoints = 0;
+	if(headP){
+		if(headP == tailP){
+			headP = tailP = NULL;
+		}
+		else{
+			while(headP){
+				point* temp = headP;
+				headP = headP->next;	
+				temp = NULL;
+			}
 		}
 	}
 }
@@ -330,7 +402,6 @@ void createPoints(){
 }
 void generatePoints(){
 	if(amountOfPoints <= 8){
-		amountOfPoints++;
 		createPoints();
 		int iterator = rand()%possiblePoints + 1;
 		int ctr = 1;
@@ -362,10 +433,12 @@ void map(){
 			if(searchPoints(i, j)){
 				screen[i][j] = 'F';
 			}
-			if(head->x == i && head->y == j){
+			if((head->x == i && head->y == j) || snakeBody(i, j)){
 				screen[i][j] = 'O';
 				if(searchPoints(i, j)){
 					delPoint(i, j);
+					snakeGrow();
+					score++;
 				}
 			}
 			else if(i == 8 || j == 42 || i == 25 || j == 79){
@@ -409,14 +482,15 @@ void* gameEngine(void *arg){
 			start = time(NULL);
 			generatePoints();
 		}
-		gameIsRunning = checkDeath() ? false : true;
 		sleep(0.5);
 		clearScreen();
 		printAtLogo();
-		map();
 		move();
+		map();
 		updateGame();
 	}
+	
+	clearPoint();
 	clearScreen();
 	updateScreen();
 	return NULL;
