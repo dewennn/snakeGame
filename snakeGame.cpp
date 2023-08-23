@@ -242,10 +242,12 @@ bool checkDeath(){
 //// Points
 int amountOfPoints = 0;
 int possiblePoints = 0;
+
 struct point{
 	int x, y;
 	point *next;
 }*headP = NULL, *tailP = NULL;
+
 void newPoint(int x, int y){
 	point* temp = (point *)malloc(sizeof(point));
 	temp->x = x;
@@ -258,6 +260,29 @@ void newPoint(int x, int y){
 	else{
 		tailP->next = temp;
 		tailP = temp;
+	}
+}
+void delPoint(int x, int y){
+	if(!headP->next){
+		if(headP->x == x && headP->y == y){
+			headP = tailP = NULL;
+		}
+	}
+	else{
+		if(headP->x == x && headP->y == y){
+			point *temp = headP;
+			headP = headP->next;
+			temp = NULL;
+		}
+		else{
+			point* curr = headP;
+			while(curr->next->x != x && curr->next->y != y && curr->next){
+				curr = curr->next;
+			}
+			point *temp = curr->next;
+			curr->next = temp->next;
+			temp = NULL;
+		}
 	}
 }
 
@@ -303,18 +328,20 @@ void createPoints(){
 		}
 	}
 }
-
 void generatePoints(){
-	createPoints();
-	int iterator = rand()%possiblePoints + 1;
-	int ctr = 1;
-	if(headC){
-		possibleCoord* curr = headC;
-		while(curr->next && ctr <= iterator){
-			curr = curr->next;
-			ctr++;
-		}
-		newPoint(curr->x, curr->y);
+	if(amountOfPoints <= 8){
+		amountOfPoints++;
+		createPoints();
+		int iterator = rand()%possiblePoints + 1;
+		int ctr = 1;
+		if(headC){
+			possibleCoord* curr = headC;
+			while(curr->next && ctr <= iterator){
+				curr = curr->next;
+				ctr++;
+			}
+			newPoint(curr->x, curr->y);
+		}	
 	}
 }
 bool searchPoints(int x, int y){
@@ -336,7 +363,10 @@ void map(){
 				screen[i][j] = 'F';
 			}
 			if(head->x == i && head->y == j){
-				screen[i][j] = 'O';	
+				screen[i][j] = 'O';
+				if(searchPoints(i, j)){
+					delPoint(i, j);
+				}
 			}
 			else if(i == 8 || j == 42 || i == 25 || j == 79){
 				screen[i][j] = '#';
