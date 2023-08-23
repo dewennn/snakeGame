@@ -256,11 +256,8 @@ void newPoint(int x, int y){
 		headP = tailP = temp;
 	}
 	else{
-		point* curr = headP;
-		while(curr->next){
-			curr = curr->next;
-		}
-		curr->next = temp;
+		tailP->next = temp;
+		tailP = temp;
 	}
 }
 
@@ -273,16 +270,14 @@ void pushCoord(int x, int y){
 	possibleCoord* temp = (possibleCoord*)malloc(sizeof(possibleCoord));
 	temp->x = x;
 	temp->y = y;
+	temp->next = NULL;
 	
 	if(!headC){
 		headC = tailC = temp;
 	}
 	else{
-		possibleCoord* curr = headC;
-		while(curr->next){
-			curr = curr->next;
-		}
-		curr->next = temp;
+		tailC->next = temp;
+		tailC = temp;
 	}
 }
 void clearCoord(){
@@ -317,6 +312,7 @@ void generatePoints(){
 		possibleCoord* curr = headC;
 		while(curr->next && ctr <= iterator){
 			curr = curr->next;
+			ctr++;
 		}
 		newPoint(curr->x, curr->y);
 	}
@@ -324,10 +320,10 @@ void generatePoints(){
 bool searchPoints(int x, int y){
 	if(headP){
 		point* curr = headP;
-		while(headP){
-			if(headP->x == x && head->y == y) return true;
-			headP = headP->next;
-		}
+		while(curr){
+			if(curr->x == x && curr->y == y) return true;
+			curr = curr->next;
+		}	
 	}
 	return false;
 }
