@@ -5,7 +5,16 @@
 #include <pthread.h>
 #include <unistd.h>
 
-bool gameIsRunning = false;
+// Colors
+void red () {
+  printf("\e[1;31m");
+}
+void green () {
+  printf("\e[1;32m");
+}
+void reset () {
+  printf("\033[0m");
+}
 
 // Terminal Manipulation
 char logo[5][100] = {
@@ -17,15 +26,6 @@ char logo[5][100] = {
 };
 char screen[32][120] = {};
 int mark;
-void red () {
-  printf("\e[1;31m");
-}
-void green () {
-  printf("\e[1;32m");
-}
-void reset () {
-  printf("\033[0m");
-}
 void printAt(int x, int y, char c){
    printf("\033[%d;%dH%c", x, y, c);
 }
@@ -49,33 +49,21 @@ void updateGame(){
 		reset();
 	}
 }
-void clear(){
+void clearScreen(){
 	for(int i = 0; i < 32; i++){
 		for(int j = 0; j < 120; j++){
 			screen[i][j] = ' ';
 		}
 	}
 }
-void enter(){
-	printf("Press ");
-	green();
-	printf("ENTER ");
-	reset();
-	printf("to continue...\n");
-	while(true){
-		int inp = _getch();
-		if(inp == 0 || inp == 224) inp = _getch();
-		if(inp == 13) break;
-	}
-}
-void displayLogo(){
+void printLogo(){
 	red();
 	for(int i = 0; i < 5; i++){
 		printf("%s\n", logo[i]);
 	}
 	reset();	
 }
-void logoForGame(){
+void printAtLogo(){
 	for(int i = 0; i < strlen(logo[0]); i++){
 		screen[1][i+42] = logo[0][i];
 	}
@@ -90,6 +78,18 @@ void logoForGame(){
 	}
 	for(int i = 0; i < strlen(logo[4]); i++){
 		screen[5][i+42] = logo[4][i];
+	}
+}
+void enter(){
+	printf("Press ");
+	green();
+	printf("ENTER ");
+	reset();
+	printf("to continue...\n");
+	while(true){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 13) break;
 	}
 }
 
@@ -195,6 +195,23 @@ player* search(player* curr, char username[]){
 }
 
 // THE GAME
+// X -> Vertical, Y -> Horizontal
+bool gameIsRunning = false;
+int score = 0;
+void map(){
+	for(int i = 8; i < 26; i++){
+		for(int j = 42; j < 80; j++){
+			if(head->x == i && head->y == j){
+				screen[i][j] = 'O';	
+			}
+			else if(i == 8 || j == 42 || i == 25 || j == 79){
+				screen[i][j] = '#';
+			}
+		}
+	}	
+}
+
+//// Snake
 struct snake{
 	int x, y;
 	int direction;
@@ -209,13 +226,6 @@ void newSnake(){
 	
 	head = tail = temp;
 }
-bool checkDeath(){
-	if(head->x <= 8 || head->x >= 25 || head->y <= 42 || head->y >= 79){
-		return true;
-	}
-	return false;
-}
-
 void move(){
 	if(head->direction == 1){
 		head->x--;
@@ -230,19 +240,89 @@ void move(){
 		head->x++;
 	}
 }
+bool checkDeath(){
+	if(head->x <= 8 || head->x >= 25 || head->y <= 42 || head->y >= 79){
+		return true;
+	}
+	return false;
+}
 
-void map(){
-	for(int i = 8; i < 26; i++){
-		for(int j = 42; j < 80; j++){
-			if(head->x == i && head->y == j){
-				screen[i][j] = 'O';	
-			}
-			else if(i == 8 || j == 42 || i == 25 || j == 79){
-				screen[i][j] = '#';
+//// Points
+int amountOfPoints = 0;
+int possiblePoints = 0;
+struct point{
+	int x, y;
+	points *next;
+}*headP = NULL, *tailP = NULL;
+void newPoint(int x, int y){
+	point* temp = (point *)malloc(sizeof(point));
+	temp->x = x;
+	temp->y = y;
+	temp->next = null;
+	
+	if(!headP){
+		headP = tailP = temp;
+	}
+	else{
+		point* curr = headP;
+		while(curr->next){
+			curr = curr->next;
+		}
+		curr->next = temp;
+	}
+}
+void generatePoints(){
+	int iterator = rand()%possiblePoints + 1;
+	
+}
+
+struct possibleCoord{
+	int x, y;
+	possibleCoord* next;
+} *headC = NULL, *tailC = NULL;
+void pushCoord(int x, int y){
+	possiblePoints++;
+	possibleCoord* temp = (possibleCoord*)malloc(sizeof(possibleCoord));
+	temp->x = x;
+	temp->y = y;
+	
+	if(!headC){
+		headC = tailC = temp;
+	}
+	else{
+		possibleCoord* curr = headC;
+		while(curr->next){
+			curr = curr->next;
+		}
+		curr->next = temp;
+	}
+}
+void clearCoord(){
+	possiblePoints = 0;
+	if(headC){
+		if(headC == tailC){
+			headC = tailC = NULL;
+		}
+		else{
+			while(headC){
+				possibleCoord* temp = headC;
+				headC = headC->next;	
+				temp = NULL;
+				free(temp);
 			}
 		}
-	}	
+	}
 }
+void createPoints(){
+	clearCoord();
+	for(int i = 8; i < 26; i++){
+		for(int j = 42; j < 80; j++){
+			if(screen[i][j] == ' ') pushCoord(i, j);
+		}
+	}
+}
+
+//// Engine
 void* userInput(void *arg){
 	while(gameIsRunning){
 		int inp = _getch();
@@ -263,21 +343,21 @@ void* userInput(void *arg){
 	return NULL;
 }
 void* gameEngine(void *arg){
-	clear();
-	logoForGame();
+	clearScreen();
+	printAtLogo();
 	map();
 	updateGame();
 	
 	while(gameIsRunning){
 		gameIsRunning = checkDeath() ? false : true;
 		sleep(0.5);
-		clear();
-		logoForGame();
+		clearScreen();
+		printAtLogo();
 		map();
 		move();
 		updateGame();
 	}
-	clear();
+	clearScreen();
 	updateScreen();
 	return NULL;
 }
@@ -294,6 +374,10 @@ void game(){
 	}
 	sleep(1);
 	printAt(0, 0, ' ');
+	
+	printf("\b");
+	printLogo();
+	printf("\n\nYour Score: %d\n", score);
 	enter();
 }
 
@@ -469,7 +553,7 @@ void login(){
 	char name[100] = {};
 	char pass[100] = {};
 	
-	displayLogo();
+	printLogo();
 	printf("\n\nLogin Page.\n");
 	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
 	
@@ -530,7 +614,7 @@ void regis(){
 	char name[100] = {};
 	char pass[100] = {};
 	
-	displayLogo();
+	printLogo();
 	printf("\n\nRegister Page.\n");
 	printf("Enter username [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: ");
 	
@@ -590,7 +674,7 @@ void howToPlay(){
 	printAt(0, 0, ' ');
 	system("cls");
 	
-	displayLogo();
+	printLogo();
 	
 	red();
 	printf("\n\nWelcome to the Snake Game!\n\n");
@@ -611,7 +695,7 @@ void howToPlay(){
 void mainMenu(){
 	int choice = 1;
 	while(true){
-		clear();
+		clearScreen();
 		
 		for(int i = 0; i < strlen(logo[0]); i++){
 			screen[1][i+1] = logo[0][i];
