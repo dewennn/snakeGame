@@ -154,7 +154,7 @@ void clearScore(){
 void displayScore(){
 	scores* curr = headS;
 	while(curr){
-		printf("%s | %d\n", curr->name, curr->score);
+		printf("| %-12s |   %-6d|\n", curr->name, curr->score);
 		curr = curr->next;
 	}
 }
@@ -270,7 +270,6 @@ void updateScore(player *curr){
 	}
 }
 
-
 // File Handling
 void readData(){
 	FILE *f = fopen("players.txt", "r");
@@ -281,6 +280,7 @@ void readData(){
 		
 		fscanf(f, "%[^,]", &name);
 		if(strlen(name) <= 0) break;
+		printf("1");
 		fgetc(f);
 		fscanf(f, "%[^,]", &pass);
 		fgetc(f);
@@ -351,7 +351,7 @@ void move(){
 			curr->direction = tempDir;
 			tempX = tempXX;
 			tempY = tempYY;
-			tempDir = tempDir;
+			tempDir = tempDirr;
 			curr = curr->next;
 		}	
 	}
@@ -545,7 +545,25 @@ void updateGame(){
 			}
 			printAt(i, j, screen[i][j]);
 		}
-	}	
+	}
+	reset();
+	printf("\n");
+	printf("\t\t\t\t\t Keep the ");
+	green();
+	printf("SNAKE");
+	reset();
+	printf(" alive!         Score: ");
+	green();
+	printf("%d\n", score);
+	reset();
+	printf("\t\t\t\t\t Eat the ");
+	yellow();
+	printf("FOOD");
+	reset();
+	printf(" to grow!\n");
+	red();
+	printf("\t\t\t\t\t Don't hit the walls or your own body!!");
+	reset();
 }
 void map(){
 	for(int i = 8; i < 26; i++){
@@ -953,9 +971,9 @@ void regis(){
 		printAt(10, strlen("Enter password [NO EMPTY SPACE | USERNAME MUST BE BETWEEN 3 - 10 LETTER (INCLUSIVE) ]: "), ' ');
 		green();
 	}
-	
 	printf("\e[?25l");
 	root = insert(root, newPlayer(name, pass, 0));
+	writeData();
 	green();
 	clearAlertTab();
 	char alert1[100] = "USERNAME AND PASSWORD HAVE BEEN VERIFIED! YOUR ACCOUNT HAS BEEN CREATED!";
@@ -977,12 +995,25 @@ void highScore(){
 	system("cls");
 	printLogo();
 	
-	yellow();
 	printf("\n\n");
+	
+	if(!headS){
+		yellow();
+		printf("NO DATA\n");
+		reset();
+		printf("\n\n");
+		enter();
+		return;
+	}
+	
+	yellow();
 	printf("SCOREBOARD\n");
-	printf("--------------------\n");
-	reset();
+	printf("*------------------------*\n");
+	printf("|    %-10s|  %s  |\n", "Name", "Score");
+	printf("*------------------------*\n");
 	displayScore();
+	printf("*------------------------*\n");
+	reset();
 	printf("\n\n");
 	enter();
 }
@@ -1124,7 +1155,18 @@ int main(){
 	printf("\e[?25h");
 	printAt(0, 0, ' ');
 	system("cls");
-	printf("THANKS FOR PLAYING :) <3");
+	
+	red();
+	printf("  _______ _                 _                        \n");
+	printf(" |__   __| |               | |                       \n");
+	printf("    | |  | |__   __ _ _ __ | | __  _   _  ___  _   _ \n");
+	printf("    | |  | '_ \\ / _` | '_ \\| |/ / | | | |/ _ \\| | | |\n");
+	printf("    | |  | | | | (_| | | | |   <  | |_| | (_) | |_| |\n");
+	printf("    |_|  |_| |_|\\__,_|_| |_|_|\\_\\  \\__, |\\___/ \\__,_|\n");
+	printf("                                    __/ |            \n");
+	printf("                                   |___/             \n");
+	reset();
+	printf("    Made By Derren Malaka :)\n");
 	
 	return 0;
 }
