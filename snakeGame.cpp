@@ -99,6 +99,64 @@ void enter(){
 	}
 }
 
+// High Score
+struct scores{
+	char name[11];
+	int score;
+	scores *next;
+	scores *prev;
+} *headS = NULL, *tailS = NULL;
+scores *newScore(char name[], int score){
+	scores *temp = (scores*)malloc(sizeof(scores));
+	strcpy(temp->name, name);
+	temp->score = score;
+	temp->next = temp->prev = NULL;
+	
+	return temp;
+}
+void pushScore(scores *newScore){
+	if(!headS){
+		headS = tailS = newScore;
+	}
+	else if(headS->score < newScore->score){
+		headS->prev = newScore;
+		newScore->next = headS;
+		headS= newScore;
+	}
+	else if(tailS->score >= newScore->score){
+		tailS->next = newScore;
+		newScore->prev = tailS;
+		tailS = newScore;
+	}
+	else{
+		scores *curr = headS;
+		while(curr && curr->next->score > newScore->score){
+			curr = curr->next;
+		}
+		scores *currNext = curr->next;
+		
+		curr->next = newScore;
+		newScore->prev = curr;
+		newScore->next = currNext;
+		currNext->prev = newScore;
+	}
+}
+void clearScore(){
+	while(headS){
+        scores *temp = headS;
+        headS = headS->next;
+        free(temp);
+    }
+    tailS = NULL;
+}
+void displayScore(){
+	scores* curr = headS;
+	while(curr){
+		printf("%s | %d\n", curr->name, curr->score);
+		curr = curr->next;
+	}
+}
+
 // Data Management
 struct player{
 	char name[11];
@@ -131,7 +189,7 @@ int getBalance(player* curr){
 	return getHeight(curr->left) - getHeight(curr->right);
 }
 player* leftRotate(player* curr){
-	player* rightChild = curr->left;
+	player* rightChild = curr->right;
 	player* rightChildLeft = rightChild->left;
 	
 	rightChild->left = curr;
@@ -176,7 +234,10 @@ player* rebalancing(player* root){
 	return root;
 }
 player* insert(player* root, player* newPlayer){
-	if(!root)return newPlayer;
+	if(!root){
+		pushScore(newScore(newPlayer->name, newPlayer->highScore));
+		return newPlayer;
+	}
 	
 	else if(strcmp(root->name, newPlayer->name) > 0){
 		root->left = insert(root->left, newPlayer);
@@ -197,6 +258,13 @@ player* search(player* curr, char username[]){
 		else if(strcmp(curr->name, username) < 0){
 			return search(curr->right, username);
 		}	
+	}
+}
+void updateScore(player *curr){
+	if(curr){
+		updateScore(curr->left);
+		pushScore(newScore(curr->name, curr->highScore));
+		updateScore(curr->right);
 	}
 }
 
@@ -516,7 +584,8 @@ void* gameEngine(void *arg){
 	return NULL;
 }
 
-void game(){
+void game(char name[]){
+	score = 0;
 	gameIsRunning = true;
 	newSnake();
 	pthread_t userInputThread, gameEngineThread;
@@ -526,6 +595,11 @@ void game(){
 	while(gameIsRunning){
 		
 	}
+	player *p = search(root, name);
+	p->highScore = p->highScore >= score ? p->highScore : score;
+	clearScore();
+	updateScore(root);
+	
 	sleep(1);
 	printAt(0, 0, ' ');
 	
@@ -774,7 +848,8 @@ void login(){
 		if(inp == 0 || inp == 224) inp = _getch();
 		if(inp == 13) break;
 	}
-	game();
+	
+	game(name);
 }
 void regis(){
 	printf("\e[?25h");
@@ -854,7 +929,18 @@ void regis(){
 	}
 }
 void highScore(){
+	printAt(0, 0, ' ');
+	system("cls");
+	printLogo();
 	
+	yellow();
+	printf("\n\n");
+	printf("SCOREBOARD\n");
+	printf("--------------------\n");
+	reset();
+	displayScore();
+	printf("\n\n");
+	enter();
 }
 void howToPlay(){
 	printAt(0, 0, ' ');
