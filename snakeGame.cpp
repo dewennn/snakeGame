@@ -102,13 +102,15 @@ void enter(){
 // High Score
 struct scores{
 	char name[11];
+	char pass[11];
 	int score;
 	scores *next;
 	scores *prev;
 } *headS = NULL, *tailS = NULL;
-scores *newScore(char name[], int score){
+scores *newScore(char name[], char pass[], int score){
 	scores *temp = (scores*)malloc(sizeof(scores));
 	strcpy(temp->name, name);
+	strcpy(temp->pass, pass);
 	temp->score = score;
 	temp->next = temp->prev = NULL;
 	
@@ -235,7 +237,7 @@ player* rebalancing(player* root){
 }
 player* insert(player* root, player* newPlayer){
 	if(!root){
-		pushScore(newScore(newPlayer->name, newPlayer->highScore));
+		pushScore(newScore(newPlayer->name, newPlayer->password, newPlayer->highScore));
 		return newPlayer;
 	}
 	
@@ -263,9 +265,40 @@ player* search(player* curr, char username[]){
 void updateScore(player *curr){
 	if(curr){
 		updateScore(curr->left);
-		pushScore(newScore(curr->name, curr->highScore));
+		pushScore(newScore(curr->name, curr->password, curr->highScore));
 		updateScore(curr->right);
 	}
+}
+
+
+// File Handling
+void readData(){
+	FILE *f = fopen("players.txt", "r");
+	while(true){
+		char name[11] = {};
+		char pass[11] = {};
+		int score = 0;
+		
+		fscanf(f, "%[^,]", &name);
+		if(strlen(name) <= 0) break;
+		fgetc(f);
+		fscanf(f, "%[^,]", &pass);
+		fgetc(f);
+		fscanf(f, "%d", &score);
+		fgetc(f);
+		printf("%s %s %d", name, pass, score);
+		root = insert(root, newPlayer(name, pass, score));
+	}
+	fclose(f);
+}
+void writeData(){
+	FILE *f = fopen("players.txt", "w");
+	scores* curr = headS;
+	while(curr){
+		fprintf(f, "%s,%s,%d\n", curr->name, curr->pass, curr->score);
+		curr = curr->next;
+	}
+	fclose(f);
 }
 
 // THE GAME
@@ -606,7 +639,18 @@ void game(char name[]){
 	printf("\b");
 	printLogo();
 	printf("\n\nYour Score: %d\n", score);
-	enter();
+	writeData();
+	
+	printf("Press ");
+	green();
+	printf("ENTER 2x ");
+	reset();
+	printf("to continue...\n");
+	while(true){
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 13) break;
+	}
 }
 
 // Features
@@ -1074,6 +1118,7 @@ void mainMenu(){
 }
 
 int main(){
+	readData();
 	printf("\e[?25l");
 	mainMenu();
 	printf("\e[?25h");
