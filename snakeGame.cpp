@@ -586,25 +586,6 @@ void map(){
 	}	
 }
 
-void* userInput(void *arg){
-	while(gameIsRunning){
-		int inp = _getch();
-		if(inp == 0 || inp == 224) inp = _getch();
-		if(inp == 72){
-			head->direction = 1;
-		}
-		else if(inp == 75){
-			head->direction = 2;
-		}
-		else if(inp == 77){
-			head->direction = 3;
-		}
-		else if(inp == 80){
-			head->direction = 4;
-		}	
-	}
-	return NULL;
-}
 void* gameEngine(void *arg){
 	clearScreen();
 	printAtLogo();
@@ -632,6 +613,18 @@ void* gameEngine(void *arg){
 	clearPoint();
 	clearScreen();
 	fixScreen();
+	
+	printAt(0, 0, ' ');
+	printf("\b");
+	printLogo();
+	printf("\n\nYour Score: %d\n", score);
+	printf("Press any ");
+	
+	green();
+	printf("KEY ");
+	reset();
+	
+	printf(" to continue...");
 	return NULL;
 }
 
@@ -639,36 +632,31 @@ void game(char name[]){
 	score = 0;
 	gameIsRunning = true;
 	newSnake();
-	pthread_t userInputThread, gameEngineThread;
-	pthread_create(&userInputThread, NULL, userInput, NULL);
+	pthread_t gameEngineThread;
 	pthread_create(&gameEngineThread, NULL, gameEngine, NULL);
 	
 	while(gameIsRunning){
-		
+		int inp = _getch();
+		if(inp == 0 || inp == 224) inp = _getch();
+		if(inp == 72){
+			head->direction = 1;
+		}
+		else if(inp == 75){
+			head->direction = 2;
+		}
+		else if(inp == 77){
+			head->direction = 3;
+		}
+		else if(inp == 80){
+			head->direction = 4;
+		}	
 	}
+	
 	player *p = search(root, name);
 	p->highScore = p->highScore >= score ? p->highScore : score;
 	clearScore();
 	updateScore(root);
-	
-	sleep(2);
-	printAt(0, 0, ' ');
-	
-	printf("\b");
-	printLogo();
-	printf("\n\nYour Score: %d\n", score);
 	writeData();
-	
-	printf("Press ");
-	green();
-	printf("ENTER 2x ");
-	reset();
-	printf("to continue...\n");
-	while(true){
-		int inp = _getch();
-		if(inp == 0 || inp == 224) inp = _getch();
-		if(inp == 13) break;
-	}
 }
 
 // Features
