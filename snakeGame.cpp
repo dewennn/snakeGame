@@ -618,10 +618,10 @@ void* gameEngine(void *arg){
 	printf("\b");
 	printLogo();
 	printf("\n\nYour Score: %d\n", score);
-	printf("Press any ");
+	printf("Press ");
 	
 	green();
-	printf("KEY ");
+	printf("ENTER ");
 	reset();
 	
 	printf(" to continue...");
@@ -635,7 +635,7 @@ void game(char name[]){
 	pthread_t gameEngineThread;
 	pthread_create(&gameEngineThread, NULL, gameEngine, NULL);
 	
-	while(gameIsRunning){
+	while(true){
 		int inp = _getch();
 		if(inp == 0 || inp == 224) inp = _getch();
 		if(inp == 72){
@@ -649,7 +649,10 @@ void game(char name[]){
 		}
 		else if(inp == 80){
 			head->direction = 4;
-		}	
+		}
+		else if(gameIsRunning == false && inp == 13){
+			break;
+		}
 	}
 	
 	player *p = search(root, name);
