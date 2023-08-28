@@ -651,7 +651,7 @@ void game(char name[]){
 	clearScore();
 	updateScore(root);
 	
-	sleep(1);
+	sleep(2);
 	printAt(0, 0, ' ');
 	
 	printf("\b");
